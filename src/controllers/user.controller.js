@@ -127,13 +127,22 @@ const userController = {
   },
   // PUT: Update User By Id
   updateUserById: async (req, res, next) => {
+    console.log('fhjshfjshfjshfhfkdgkjhu');
     try {
       const { userId } = req.params;
+
+      console.log({ userId });
 
       if (!userId) return next(new HttpError(MESSAGES.WRONG_ID, 404));
 
       const userById = await UserRepository.findUserById(userId);
+
+      console.log(userById);
+
       const userReq = new UserRequest(userById);
+
+      console.log({ ...userReq, ...req.body });
+
       const updatedUser = await UserRepository.findUpdateUserById({ ...userReq, ...req.body }, userId);
 
       if (!updatedUser) return next(new HttpError(MESSAGES.ACCOUNT_DOES_NOT_EXIST, 404));
@@ -143,6 +152,7 @@ const userController = {
         data: updatedUser,
       });
     } catch (error) {
+      console.log({ error });
       next(error);
     }
   },
@@ -369,8 +379,6 @@ const userController = {
   uploadAvatar: async (req, res, next) => {
     try {
       const { userId } = req.params;
-
-      console.log(req.file);
 
       const user = await UserRepository.findUserByOne({ uuid: userId });
 

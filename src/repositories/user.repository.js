@@ -3,7 +3,7 @@ const executeQuery = require('../utils/executeQuery.util');
 module.exports = UserRepository = {
   // GET: Get All User
   findAllUser: async ({ email, username, fullName, phoneNumber, sortByName, sortByDate, limit, offset }) => {
-    let query = `SELECT * FROM users WHERE is_activated = 1`;
+    let query = `SELECT * FROM users WHERE is_public = 1`;
 
     if (email) query += ` AND email = '${email}'`;
     if (username) query += ` AND username = '${username}'`;
@@ -30,7 +30,7 @@ module.exports = UserRepository = {
   findUserById: async (userId) => {
     let query = `SELECT * FROM users WHERE uuid = '${userId}'`;
     const res = await executeQuery(query);
-
+    console.log({ query });
     return res[0];
   },
 
@@ -58,8 +58,10 @@ module.exports = UserRepository = {
                       full_name,
                       password,
                       phone_number,
-                      country,
-                      state,
+                      ward,
+                      district,
+                      province,
+                      typeAddress,
                       address,
                       role,
                       avatar,
@@ -76,8 +78,10 @@ module.exports = UserRepository = {
                     '${user.fullName}',
                     '${user.password}',
                     '${user.phoneNumber}',
-                    '${user.country}',
-                    '${user.state}',
+                    '${user.ward}',
+                    '${user.district}',
+                    '${user.province}',
+                    '${user.typeAddress}',
                     '${user.address}',
                     '${user.role}',
                     '${user.avatar}',
@@ -93,19 +97,22 @@ module.exports = UserRepository = {
 
   // PUT: Update User By ID
   findUpdateUserById: async (user, userId) => {
-    const query = `UPDATE users  
-                   SET username = '${user.username}', 
-                      email = '${user.email}', 
-                      full_name = '${user.fullName}',  
-                      password = '${user.password}', 
+    await executeQuery('SET SQL_SAFE_UPDATES = 0;');
+
+    const query = `
+    UPDATE users  
+                   SET full_name = '${user.fullName}',  
+                      password = '${user.password}',
                       phone_number = '${user.phoneNumber}', 
-                      address = '${user.address}', 
-                      role = '${user.role}', 
-                      avatar = '${user.avatar}', 
-                      is_public = '${user.isPublic}'
+                      ward = '${user.ward}',
+                      district = '${user.district}',
+                      province = '${user.province}',
+                      address = '${user.address}',
+                      typeAddress = '${user.typeAddress}'
                    WHERE uuid = '${userId}'`;
 
     await executeQuery(query);
+    await executeQuery('SET SQL_SAFE_UPDATES = 1;');
     return user;
   },
 

@@ -6,8 +6,10 @@ class UserResponse {
     this.email = user.email;
     this.address = user.address;
     this.phoneNumber = user.phoneNumber;
-    this.country = user.country || '';
-    this.state = user.state || '';
+    this.typeAddress = user.typeAddress || '';
+    this.ward = user.ward || '';
+    this.province = user.province || '';
+    this.district = user.district || '';
     this.address = user.address || '';
     this.phoneNumber = user.phoneNumber || '';
     this.dayOfBirth = user.dayOfBirth || '2023-01-01';

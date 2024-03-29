@@ -8,11 +8,13 @@ module.exports = ProductRepository = {
     WHERE 1=1
   `;
 
+    console.log({ sortByName, sortByDate });
+
     if (productName) {
-      query += ` AND product_name = '${productName}'`;
+      query += ` AND product_name like N'${productName}%'`;
     }
     if (categoryName) {
-      query += ` AND category_name = '${categoryName}'`;
+      query += ` AND category_name like N'${categoryName}%'`;
     }
 
     if (sortByName === 'asc') {
@@ -26,6 +28,8 @@ module.exports = ProductRepository = {
     } else if (sortByDate === 'oldest') {
       query += ' , updated_at ASC';
     }
+
+    console.log({ query });
 
     query += `
     LIMIT ${limit} OFFSET ${offset}
@@ -138,16 +142,16 @@ module.exports = ProductRepository = {
   },
   // POST: Create New Product
   createOneProduct: async (product) => {
-    const hasCategory = await executeQuery(`SELECT * FROM categories WHERE category_id = ${product.categoryId}`);
+    // const hasCategory = await executeQuery(`SELECT * FROM categories WHERE category_id = ${product.categoryId}`);
 
-    if (!hasCategory[0]) {
-      const categoryQuery = `
-          INSERT INTO categories (category_id, category_name)
-          VALUES (${product.categoryId}, '${product.categoryName}')
-        `;
+    // if (!hasCategory[0]) {
+    //   const categoryQuery = `
+    //       INSERT INTO categories (category_id, category_name)
+    //       VALUES (${product.categoryId}, '${product.categoryName}')
+    //     `;
 
-      await executeQuery(categoryQuery);
-    }
+    //   await executeQuery(categoryQuery);
+    // }
 
     // Insert product
     const productQuery = `INSERT INTO products (
@@ -171,23 +175,23 @@ module.exports = ProductRepository = {
                     )
                   VALUES
                     (
-                      "${product.productId}",
-                      "${product.productName}",
-                      "${product.urlPath}",
-                      "${product.priceNew}",
-                      "${product.priceOdd}",
-                      "${product.discountProduct}",
-                      "${product.deliveryDay}",
-                      "${product.deliveryPrice}",
-                      "${product.rating}",
-                      "${product.reviewCount}",
-                      "${product.favoriteCount}",
-                      "${product.thumbnailUrl}",
-                      "${product.limitProduct}",
-                      "${product.soldProduct}",
-                      "${product.description}",
-                      "${product.categoryId}",
-                  "${product.shopName}"
+                      '${product.productId}',
+                      '${product.productName}',
+                      '${product.urlPath}',
+                      '${product.priceNew}',
+                      '${product.priceOdd}',
+                      '${product.discountProduct}',
+                      '${product.deliveryDay}',
+                      '${product.deliveryPrice}',
+                      '${product.rating}',
+                      '${product.reviewCount}',
+                      '${product.favoriteCount}',
+                      '${product.thumbnailUrl}',
+                      '${product.limitProduct}',
+                      '${product.soldProduct}',
+                      '${product.description}',
+                      '${product.categoryId}',
+                      '${product.shopName}'
                     )`;
 
     await executeQuery(productQuery);
@@ -217,6 +221,82 @@ module.exports = ProductRepository = {
     });
 
     return product;
+  },
+  // POST: Create New Product
+  createAllProduct: async (products) => {
+    try {
+      await Promise.all(
+        products.map(async (product) => {
+          const productQuery = `INSERT INTO products (
+          product_id,
+          product_name,
+          url_path,
+          price_new,
+          price_odd,
+          discount_product,
+          delivery_day,
+          delivery_price,
+          rating,
+          review_count,
+          favorite_count,
+          thumbnail_url,
+          limit_product,
+          sold_product,
+          description,
+          category_id,
+          shop_name
+        ) VALUES (
+          '${product.productId}', 
+          '${product.productName}', 
+          '${product.urlPath}', 
+          '${product.priceNew}', 
+          '${product.priceOdd}', 
+          '${product.discountProduct}', 
+          '${product.deliveryDay}', 
+          '${product.deliveryPrice}', 
+          '${product.rating}', 
+          '${product.reviewCount}', 
+          '${product.favoriteCount}', 
+          '${product.thumbnailUrl}', 
+          '${product.limitProduct}', 
+          '${product.soldProduct}', 
+          '${product.description}', 
+          '${product.categoryId}', 
+          '${product.shopName}')`;
+
+          await executeQuery(productQuery);
+
+          // Insert images
+          await Promise.all(
+            (product.imageList || []).map(async (url) => {
+              const imageQuery = `INSERT INTO product_images (product_id, image_url) VALUES ('${product.productId}', '${url}')`;
+              await executeQuery(imageQuery);
+            })
+          );
+
+          // Insert breadcrumbs
+          await Promise.all(
+            (product.breadcrumbs || []).map(async ({ url = '', name = '' }) => {
+              const breadcrumbQuery = `INSERT INTO product_breadcrumbs (url, name, product_id, category_id) VALUES ('${url}', '${name}', '${product.productId}', '${product.categoryId}')`;
+              await executeQuery(breadcrumbQuery);
+            })
+          );
+
+          // Insert specifications
+          await Promise.all(
+            (product.specifications || []).map(async ({ name = '' }) => {
+              const specificationQuery = `INSERT INTO product_specifications (product_id, name) VALUES ('${product.productId}', '${name}')`;
+              await executeQuery(specificationQuery);
+            })
+          );
+        })
+      );
+
+      return products;
+    } catch (error) {
+      console.error('Error in createAllProduct:', error);
+      throw error;
+    }
   },
 
   // PUT: Update Product By ID

@@ -53,7 +53,7 @@ module.exports = OrderRepository = {
   // GET: Get Product To In Cart
   findProductToCart: async (userId) => {
     const query = `
-                    SELECT od.*, p.product_id, p.thumbnail_url, p.shop_name, o.total_price as total_price_all
+                    SELECT o.id, od.*, p.product_id, p.thumbnail_url, p.shop_name, o.total_price as total_price_all
                     FROM orders o
                     JOIN order_details od ON o.id = od.order_id
                     JOIN products p ON od.product_id = p.product_id
@@ -166,13 +166,13 @@ module.exports = OrderRepository = {
         WHERE id = ${lastOrderId};
       `;
 
-    await executeQuery(recalculateTotalPriceQuery);
-
     return order;
   },
 
   // PUT: Update Order By ID
   findUpdateOrderDetailsById: async (orderDetails, orderId) => {
+    console.log(orderDetails);
+
     const updateOrderDetailsQuery = `
         UPDATE order_details
         SET 
@@ -197,6 +197,18 @@ module.exports = OrderRepository = {
     await executeQuery(recalculateTotalPriceQuery);
 
     return orderDetails;
+  },
+
+  findUpdateStatus: async (orderId) => {
+    const query = `
+                  UPDATE orders
+                  SET status = 'new orders' 
+                    WHERE order_id = ${orderId}
+                  )
+                  WHERE id = ${orderId};
+                `;
+
+    await executeQuery(query);
   },
 
   // DELETE: Remove Order by ID

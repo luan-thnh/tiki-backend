@@ -2,6 +2,7 @@ const { OrderRequest, OrderDetailsRequest } = require('../data/request/order.req
 const OrderRepository = require('../repositories/order.repository');
 const executeQuery = require('../utils/executeQuery.util');
 const { OrderResponse, OrderDetailResponse, OrderCartResponse } = require('../data/response/order.response');
+const { createOrder, captureOrder } = require('../utils/paypalApi.util');
 const { HttpError } = require('../middleware/errorHandler.middleware');
 
 const orderController = {
@@ -109,6 +110,8 @@ const orderController = {
 
       const cart = await OrderRepository.findProductToCart(userId);
 
+      console.log({ cart });
+
       if (!cart) {
         return next(new HttpError('Cart not found', 404));
       }
@@ -198,8 +201,6 @@ const orderController = {
       const mergedOrder = Object.assign({}, orderDetailsReq, req.body);
       const orderDetailsRes = new OrderDetailResponse(mergedOrder);
 
-      console.log(orderDetailsRes);
-
       const updatedOrderDetails = await OrderRepository.findUpdateOrderDetailsByIdWithProductHandling(
         orderDetailsRes,
         orderId
@@ -208,6 +209,24 @@ const orderController = {
       res.status(200).json({
         message: 'Thành công',
         data: updatedOrderDetails,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+
+  updateStatusOrder: async (req, res, next) => {
+    try {
+      const { orderId } = req.params;
+
+      if (!orderId) {
+        return next(new HttpError('Order ID not found', 404));
+      }
+
+      await OrderRepository.findUpdateStatus(orderId);
+
+      res.status(200).json({
+        message: 'Thành công',
       });
     } catch (error) {
       next(error);
@@ -227,6 +246,28 @@ const orderController = {
       res.status(204).send();
     } catch (error) {
       next(error);
+    }
+  },
+
+  createOrderCheckout: async (req, res) => {
+    try {
+      const { cart } = req.body;
+      const { jsonResponse, httpStatusCode } = await createOrder(cart);
+      res.status(httpStatusCode).json(jsonResponse);
+    } catch (error) {
+      console.error('Failed to create order:', error);
+      res.status(500).json({ error: 'Failed to create order.' });
+    }
+  },
+
+  createOrderCapture: async (req, res) => {
+    try {
+      const { orderID } = req.params;
+      const { jsonResponse, httpStatusCode } = await captureOrder(orderID);
+      res.status(httpStatusCode).json(jsonResponse);
+    } catch (error) {
+      console.error('Failed to create order:', error);
+      res.status(500).json({ error: 'Failed to capture order.' });
     }
   },
 };

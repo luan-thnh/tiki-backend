@@ -6,7 +6,7 @@ const verifyToken = (req, res, next) => {
 
   try {
     if (!Authorization) {
-      // req.user = { userId: null, role: null };
+      req.user = { userId: null, role: null };
       const error = new HttpError('Unauthorized!!', 400);
       return next(error);
     }

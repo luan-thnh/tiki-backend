@@ -9,9 +9,11 @@ class UserRequest {
     this.email = user.email;
     this.password = this.hashPassword(user.password);
     this.fullName = user.fullName || user.full_name || '';
-    this.country = user.country || '';
-    this.state = user.state || '';
+    this.ward = user.ward || '';
+    this.district = user.district || '';
+    this.province = user.province || '';
     this.address = user.address || '';
+    this.typeAddress = user.typeAddress || '';
     this.phoneNumber = user.phoneNumber || user.phone_number || '';
     this.dayOfBirth = user.dayOfBirth || '2023-01-01';
     this.gender = Number(user.gender) || 1;

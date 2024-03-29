@@ -37,8 +37,8 @@ class OrderDetailResponse {
 
 class OrderCartResponse {
   constructor(cart) {
-    this.orderDetailsId = cart.id;
     this.order = cart.order_id;
+    this.orderDetailsId = cart.id;
     this.productId = cart.product_id;
     this.productName = cart.product_name.trim();
     this.thumbnailUrl = cart.thumbnail_url.trim();

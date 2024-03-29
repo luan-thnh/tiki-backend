@@ -10,7 +10,7 @@ const productController = {
   getAllProduct: async (req, res, next) => {
     try {
       const PAGE = req.query.page || 1;
-      const LIMIT = req.query.limit || 5;
+      const LIMIT = req.query.limit || 20;
       const TOTAL_ELEMENTS = await executeQuery('SELECT COUNT(id) as count FROM products');
       const TOTAL_PAGES = Math.ceil(TOTAL_ELEMENTS[0].count / LIMIT);
 
@@ -27,8 +27,8 @@ const productController = {
         message: 'Success',
         data: {
           pagination: {
-            page: PAGE,
-            limit: LIMIT,
+            page: Number(PAGE),
+            limit: Number(LIMIT),
             totalPages: TOTAL_PAGES,
             totalElements: TOTAL_ELEMENTS[0].count,
           },
@@ -80,11 +80,32 @@ const productController = {
       }
 
       const newProduct = await ProductRepository.createOneProduct(productReq);
-      const productRes = new ProductResponse(newProduct, token);
+      // const productRes = new ProductResponse(newProduct);
 
       res.status(200).json({
         message: 'success',
-        data: productRes,
+        data: newProduct,
+      });
+    } catch (error) {
+      next(error);
+    }
+  },
+  createAllProduct: async (req, res, next) => {
+    try {
+      const products = req.body.products;
+
+      const productsReq = products.map((product) => new ProductRequest(product));
+
+      // console.log(newProducts);
+      // products.forEach(async (product) => {
+      //   const productReq = new ProductRequest(product);
+
+      // });
+      const newProducts = await ProductRepository.createAllProduct(productsReq);
+
+      res.status(200).json({
+        message: 'success',
+        data: newProducts,
       });
     } catch (error) {
       next(error);
